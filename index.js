@@ -1,6 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
+import countries from "i18n-iso-countries";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -52,33 +53,22 @@ app.get("/", async (req, res) => {
 });
 app.post("/add", async (req, res) => {
   const input = req.body["country"];
-  const currentUser = await getCurrentUser();
+  const countryCode = countries.getSimpleAlpha2Code(input.trim(), "en") || countries.getAlpha2Code(input.trim(), "en");
+
+  if (!countryCode) {
+    res.redirect("/?error=" + encodeURIComponent("Country not recognized"));
+    return;
+  }
 
   try {
-    const result = await db.query(
-      "SELECT country_code FROM countries WHERE LOWER(country_name) LIKE '%' || $1 || '%';",
-      [input.toLowerCase()]
+    await db.query(
+      "INSERT INTO visited_countries (country_code, user_id) VALUES ($1, $2)",
+      [countryCode, currentUserId]
     );
-
-    const data = result.rows[0];
-    if (!data) {
-      res.redirect("/?error=" + encodeURIComponent("Country not found in database"));
-      return;
-    }
-    const countryCode = data.country_code;
-    try {
-      await db.query(
-        "INSERT INTO visited_countries (country_code, user_id) VALUES ($1, $2)",
-        [countryCode, currentUserId]
-      );
-      res.redirect("/");
-    } catch (err) {
-      console.log(err);
-      res.redirect("/?error=" + encodeURIComponent("Could not save country"));
-    }
+    res.redirect("/");
   } catch (err) {
     console.log(err);
-    res.redirect("/?error=" + encodeURIComponent("Country lookup failed"));
+    res.redirect("/?error=" + encodeURIComponent("Could not save country"));
   }
 });
 app.post("/user", async (req, res) => {
