@@ -47,6 +47,7 @@ app.get("/", async (req, res) => {
     total: countries.length,
     users: users,
     color: currentUser.color,
+    error: req.query.error,
   });
 });
 app.post("/add", async (req, res) => {
@@ -60,6 +61,10 @@ app.post("/add", async (req, res) => {
     );
 
     const data = result.rows[0];
+    if (!data) {
+      res.redirect("/?error=" + encodeURIComponent("Country not found in database"));
+      return;
+    }
     const countryCode = data.country_code;
     try {
       await db.query(
@@ -69,11 +74,11 @@ app.post("/add", async (req, res) => {
       res.redirect("/");
     } catch (err) {
       console.log(err);
-      res.redirect("/");
+      res.redirect("/?error=" + encodeURIComponent("Could not save country"));
     }
   } catch (err) {
     console.log(err);
-    res.redirect("/");
+    res.redirect("/?error=" + encodeURIComponent("Country lookup failed"));
   }
 });
 app.post("/user", async (req, res) => {

@@ -26,6 +26,9 @@
     <input type="text" name="country" autofocus placeholder="<%= locals.error ? error :  'Enter country name'%>">
     <button type="submit" style="background-color: <%= color %>;">Add</button>
   </form>
+  <% if (locals.error) { %>
+    <p class="error-message"><%= error %></p>
+  <% } %>
 
   <section class="ag-canvas">
     <svg class="ag-canvas_svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
