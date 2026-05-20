@@ -3,15 +3,13 @@ import bodyParser from "body-parser";
 import pg from "pg";
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 const db = new pg.Client({
-  user: "postgres",
-  host: "localhost",
-  database: "world",
-  password: "soyuz321",
-  port: 5433,
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : undefined,
 });
+
 db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
